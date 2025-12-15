@@ -1,0 +1,46 @@
+# 配置示例文件 Configuration Example
+# 请复制此文件为 config.txt 并填入您的实际值
+# Please copy this file to config.txt and fill in your actual values
+
+# ============================================================
+# 玩家信息 Player Information
+# ============================================================
+
+# 牌谱屋 Player ID
+# 获取方式: 访问 https://amae-koromo.sapk.ch，搜索你的昵称，URL中的数字即为PLAYER_ID
+PLAYER_ID=11351776
+
+# 玩家昵称 Player Name
+PLAYER_NAME=Traaaaa
+
+# 雀魂友人ID (Majsoul Friend ID)
+# 获取方式: 详见 爬虫部分/如何获取ID.md
+REAL_MAJSOUL_ID=33734565
+
+# ============================================================
+# 游戏模式 Game Mode
+# ============================================================
+
+# MODE 配置:
+#   16 = 王座之间 (Throne Room)
+#   12 = 玉之间 (Jade Room)
+#   9  = 金之间 (Gold Room)
+#   16.12 = 混合模式 (王座+玉)
+MODE=16.12
+
+# ============================================================
+# 2Captcha API Key (可选 Optional)
+# ============================================================
+
+# 获取方式: https://2captcha.com 注册后获取
+# 如果不设置，将使用手动验证码模式
+# 建议: 设置为系统环境变量 TWOCAPTCHA_API_KEY
+# TWOCAPTCHA_API_KEY=YOUR_API_KEY_HERE
+
+# ============================================================
+# 注意事项 Important Notes
+# ============================================================
+
+# ⚠️  请勿将此文件上传到 GitHub！
+# ⚠️  config.txt 已在 .gitignore 中排除
+# ⚠️  建议将敏感信息设置为环境变量
