@@ -8,14 +8,14 @@
 
 # 牌谱屋 Player ID
 # 获取方式: 访问 https://amae-koromo.sapk.ch，搜索你的昵称，URL中的数字即为PLAYER_ID
-PLAYER_ID=11351776
+PLAYER_ID=12345678
 
 # 玩家昵称 Player Name
-PLAYER_NAME=Traaaaa
+PLAYER_NAME=YourName
 
 # 雀魂友人ID (Majsoul Friend ID)
 # 获取方式: 详见 爬虫部分/如何获取ID.md
-REAL_MAJSOUL_ID=33734565
+REAL_MAJSOUL_ID=00000000
 
 # ============================================================
 # 游戏模式 Game Mode
