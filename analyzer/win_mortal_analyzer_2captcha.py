@@ -146,9 +146,10 @@ class MortalAnalyzer:
             print(f"  ✗ 2Captcha 解决失败: {e}")
             return None
 
-    def submit_paipu(self, paipu_url: str, player_id: int = 0, retry_count: int = 0) -> Optional[Dict]:
+    def submit_paipu(self, paipu_url: str, player_id: int = 0, retry_count: int = 0, captcha_retry: int = 0) -> Optional[Dict]:
         """提交单个牌谱并获取结果"""
-        max_retries = 2  # 最多重试2次
+        max_retries = 2  # 最多重试2次（点击被遮挡）
+        max_captcha_retries = 2  # 验证码最多重试2次
 
         try:
             # 访问页面
@@ -193,6 +194,8 @@ class MortalAnalyzer:
                 pass
 
             # 使用 2Captcha 解决验证码
+            captcha_solved = False  # 标记验证码是否成功解决
+
             if self.solver:
                 print("  🔍 查找 Turnstile 验证码参数...")
 
@@ -239,6 +242,7 @@ class MortalAnalyzer:
                                     # 调用 callback 函数
                                     self.driver.execute_script(f"if (typeof {callback_name} === 'function') {{ {callback_name}(); }}")
                                     print(f"  ✓ Callback 已调用！")
+                                    captcha_solved = True
                                 except Exception as e:
                                     print(f"  ⚠ 调用 callback 失败: {e}")
 
@@ -254,6 +258,16 @@ class MortalAnalyzer:
                         except Exception as e:
                             print(f"  ⚠ 注入 token 失败: {e}")
                             print("  尝试直接提交...")
+                    else:
+                        # 2Captcha 解决失败（超时等）
+                        print(f"  ⚠ 验证码解决失败")
+                        if captcha_retry < max_captcha_retries:
+                            print(f"  🔄 重试验证码 ({captcha_retry + 1}/{max_captcha_retries})...")
+                            time.sleep(3)
+                            return self.submit_paipu(paipu_url, player_id, retry_count, captcha_retry + 1)
+                        else:
+                            print(f"  ✗ 验证码重试次数已用尽，跳过此牌谱")
+                            return None
 
             else:
                 # 手动模式：等待用户点击
@@ -274,11 +288,32 @@ class MortalAnalyzer:
                         pass
                     time.sleep(1)
 
-            # 检查提交按钮是否可用
+            # 检查提交按钮是否可用，最多等待30秒
             submit_btn = self.driver.find_element(By.CSS_SELECTOR, "button[name='submitBtn']")
             if not submit_btn.is_enabled():
-                print("  ⚠ 提交按钮未启用，等待...")
-                time.sleep(2)
+                print("  ⚠ 提交按钮未启用，等待验证码生效...")
+                wait_start = time.time()
+                max_wait_for_btn = 30  # 最多等待30秒
+
+                while time.time() - wait_start < max_wait_for_btn:
+                    time.sleep(1)
+                    try:
+                        submit_btn = self.driver.find_element(By.CSS_SELECTOR, "button[name='submitBtn']")
+                        if submit_btn.is_enabled():
+                            print("  ✓ 提交按钮已启用")
+                            break
+                    except:
+                        pass
+                else:
+                    # 等待超时，验证码可能失败
+                    print(f"  ✗ 提交按钮等待超时（{max_wait_for_btn}秒）")
+                    if captcha_retry < max_captcha_retries:
+                        print(f"  🔄 重试验证码 ({captcha_retry + 1}/{max_captcha_retries})...")
+                        time.sleep(2)
+                        return self.submit_paipu(paipu_url, player_id, retry_count, captcha_retry + 1)
+                    else:
+                        print(f"  ✗ 验证码重试次数已用尽，跳过此牌谱")
+                        return None
 
             # 使用 JavaScript 点击（更可靠，不受页面滚动影响）
             print("  提交中...")
@@ -295,9 +330,14 @@ class MortalAnalyzer:
                 submit_btn.click()
 
             # 等待跳转到结果页面（最多等待5分钟）
-            WebDriverWait(self.driver, 300).until(
-                EC.url_contains("/report/")
-            )
+            try:
+                WebDriverWait(self.driver, 300).until(
+                    EC.url_contains("/report/")
+                )
+            except Exception as e:
+                error_msg = str(e) if str(e).strip() else "等待结果页面超时"
+                print(f"  ✗ 页面跳转失败: {error_msg}")
+                raise Exception(error_msg)
 
             # 等待结果加载完成
             time.sleep(3)
@@ -308,19 +348,30 @@ class MortalAnalyzer:
             return result
 
         except Exception as e:
-            print(f"  错误: {e}")
+            error_str = str(e).strip()
+            if not error_str:
+                error_str = "未知错误（可能是网络超时或页面加载失败）"
+            print(f"  错误: {error_str}")
 
             # 保存错误截图
             try:
-                self.driver.save_screenshot(f"error_{datetime.now().strftime('%H%M%S')}.png")
+                screenshot_name = f"error_{datetime.now().strftime('%H%M%S')}.png"
+                self.driver.save_screenshot(screenshot_name)
+                print(f"  📸 错误截图已保存: {screenshot_name}")
             except:
                 pass
 
             # 如果是点击被遮挡的错误，且未达到重试次数，则重试
-            if "click intercepted" in str(e) and retry_count < max_retries:
+            if "click intercepted" in error_str and retry_count < max_retries:
                 print(f"  🔄 检测到点击被遮挡，重试 ({retry_count + 1}/{max_retries})...")
                 time.sleep(2)
-                return self.submit_paipu(paipu_url, player_id, retry_count + 1)
+                return self.submit_paipu(paipu_url, player_id, retry_count + 1, captcha_retry)
+
+            # 如果是超时相关错误，也可以重试
+            if ("timeout" in error_str.lower() or "timed out" in error_str.lower()) and retry_count < max_retries:
+                print(f"  🔄 检测到超时，重试 ({retry_count + 1}/{max_retries})...")
+                time.sleep(3)
+                return self.submit_paipu(paipu_url, player_id, retry_count + 1, captcha_retry)
 
             return None
 
