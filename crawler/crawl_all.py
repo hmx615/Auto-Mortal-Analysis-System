@@ -19,9 +19,9 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # 配置
 API_BASE = "https://5-data.amae-koromo.com"
-PLAYER_ID = 9749370          # 改为你的牌谱屋ID
-PLAYER_NAME = "路人的自我修养"       # 改为你的昵称
-REAL_MAJSOUL_ID = "18261243"   # 改为你的雀魂友人ID
+PLAYER_ID = 12345678         # 改为你的牌谱屋ID
+PLAYER_NAME = "你的昵称"          # 改为你的昵称
+REAL_MAJSOUL_ID = "00000000"   # 改为你的雀魂友人ID
 
 # MODE 配置：
 # - 单王座：16 (Throne)
