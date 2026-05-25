@@ -13,21 +13,22 @@ import io
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options as EdgeOptions
+from selenium.webdriver.edge.service import Service as EdgeService
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # 配置
 API_BASE = "https://5-data.amae-koromo.com"
-PLAYER_ID = 12345678          # 改为你的牌谱屋ID
-PLAYER_NAME = "YourName"       # 改为你的昵称
-REAL_MAJSOUL_ID = "87654321"   # 改为你的雀魂友人ID
+PLAYER_ID = 9749370          # 改为你的牌谱屋ID
+PLAYER_NAME = "路人的自我修养"       # 改为你的昵称
+REAL_MAJSOUL_ID = "18261243"   # 改为你的雀魂友人ID
 
 # MODE 配置：
 # - 单王座：16 (Throne)
 # - 单玉：12 (Jade)
 # - 单金：9 (Gold)
 # - 混合（如王座+玉）：16.12
-MODE = 16.12  
+MODE = 12
 WEB_URL = f"https://amae-koromo.sapk.ch/player/{PLAYER_ID}/{MODE}"
 PAIPU_PREFIX = "https://game.maj-soul.com/1/?paipu="
 
@@ -91,45 +92,27 @@ def crawl_api_data(limit=None):
         print(f"\n正在获取{mode_name}数据...", flush=True)
         mode_records = []
 
-        # 动态生成时间段：从2020年到当前时间，按季度分段（API每次最多返回100条）
+        # 按周分段（每周约25-30局，远低于100条上限）
         import time as time_module
-        from datetime import datetime as dt
+        from datetime import datetime as dt, timedelta
 
         time_ranges = []
-        start_year = 2020
-        current_time = int(time_module.time() * 1000)  # 当前时间（毫秒）
+        current_dt = dt.now()
+        seg_start = dt(2022, 1, 1)  # 从有数据的年份开始
 
-        # 生成从2020年到当前的所有季度
-        for year in range(start_year, dt.now().year + 2):  # +2确保覆盖未来
-            for quarter in range(1, 5):  # Q1-Q4
-                # 计算季度起止时间
-                if quarter == 1:
-                    q_start = dt(year, 1, 1)
-                    q_end = dt(year, 4, 1)
-                elif quarter == 2:
-                    q_start = dt(year, 4, 1)
-                    q_end = dt(year, 7, 1)
-                elif quarter == 3:
-                    q_start = dt(year, 7, 1)
-                    q_end = dt(year, 10, 1)
-                else:  # Q4
-                    q_start = dt(year, 10, 1)
-                    q_end = dt(year + 1, 1, 1)
+        while seg_start < current_dt:
+            seg_end = seg_start + timedelta(days=7)
+            if seg_end > current_dt:
+                seg_end = current_dt
+            start_ms = int(seg_start.timestamp() * 1000)
+            end_ms = int(seg_end.timestamp() * 1000)
+            time_ranges.append((start_ms, end_ms))
+            seg_start = seg_end
 
-                start_ms = int(q_start.timestamp() * 1000)
-                end_ms = int(q_end.timestamp() * 1000)
+        total_weeks = len(time_ranges)
+        print(f"  共 {total_weeks} 个时间段，开始获取...", flush=True)
 
-                # 如果起始时间已经超过当前时间，停止生成
-                if start_ms > current_time:
-                    break
-
-                time_ranges.append((start_ms, end_ms))
-
-            # 如果已经超过当前年份，停止
-            if year > dt.now().year:
-                break
-
-        for start_time, end_time in time_ranges:
+        for idx, (start_time, end_time) in enumerate(time_ranges):
             url = f"{API_BASE}/api/v2/pl4/player_records/{PLAYER_ID}/{start_time}/{end_time}"
             params = {"mode": mode}
 
@@ -139,9 +122,11 @@ def crawl_api_data(limit=None):
                     records = resp.json()
                     if records:
                         mode_records.extend(records)
-                        start_date = datetime.fromtimestamp(start_time/1000).strftime('%Y-%m')
-                        print(f"  {start_date}: {len(records)} 条", flush=True)
-                    time.sleep(0.3)  # 避免请求过快
+                        start_date = datetime.fromtimestamp(start_time/1000).strftime('%Y-%m-%d')
+                        print(f"  [{idx+1}/{total_weeks}] {start_date}: {len(records)} 条", flush=True)
+                    elif (idx + 1) % 20 == 0:
+                        start_date = datetime.fromtimestamp(start_time/1000).strftime('%Y-%m-%d')
+                        print(f"  [{idx+1}/{total_weeks}] {start_date}: 无数据", flush=True)
                 else:
                     print(f"  获取失败，状态码: {resp.status_code}")
             except Exception as e:
@@ -228,7 +213,9 @@ def crawl_web_data():
         options.add_argument('--disable-blink-features=AutomationControlled')
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
-        driver = webdriver.Edge(options=options)
+        from webdriver_manager.microsoft import EdgeChromiumDriverManager
+        service = EdgeService(EdgeChromiumDriverManager().install())
+        driver = webdriver.Edge(service=service, options=options)
 
         print(f"访问页面: {WEB_URL}", flush=True)
         driver.get(WEB_URL)
@@ -255,8 +242,8 @@ def crawl_web_data():
         print("正在提取牌谱数据...", flush=True)
         page_source = driver.page_source
 
-        # 提取时间信息
-        time_pattern = r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2})'
+        # 提取时间信息（月份/日期可能是1-2位，如 2025/5/4 或 2025/12/31）
+        time_pattern = r'(\d{4}/\d{1,2}/\d{1,2}\s+\d{2}:\d{2})'
         time_matches = re.findall(time_pattern, page_source)
 
         # 提取rank（汉字或全角数字）
@@ -378,10 +365,15 @@ def crawl_web_data():
                     day = date_str[4:6]
                     start_time = f"{year}-{month}-{day} 00:00:00"
 
-                    # 使用精确时间
+                    # 使用精确时间，并补零确保格式统一 YYYY-MM-DD HH:MM:00
                     if i < len(time_matches):
-                        precise_time = time_matches[i].replace('/', '-')
-                        start_time = precise_time + ":00"
+                        from datetime import datetime as _dt
+                        try:
+                            precise_time = _dt.strptime(time_matches[i], '%Y/%m/%d %H:%M')
+                            start_time = precise_time.strftime('%Y-%m-%d %H:%M:00')
+                        except:
+                            precise_time = time_matches[i].replace('/', '-')
+                            start_time = precise_time + ":00"
                 else:
                     start_time = "未知"
 

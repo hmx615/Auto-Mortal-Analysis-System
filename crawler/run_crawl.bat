@@ -10,7 +10,7 @@ echo.
 echo Output: ../data/paipu_list.csv
 echo.
 
-python crawl_all.py 2>&1
+"%LOCALAPPDATA%\Programs\Python\Python311\python.exe" crawl_all.py 2>&1
 
 if %errorlevel% neq 0 (
     echo.
