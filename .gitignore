@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Data files (牌谱和分析结果不上传)
+data/
+*.csv
+*.json
+
+# Visualization outputs
+visualization/*.html
+visualization/*.md
+mortal_dashboard.html
+
+# Cheat check reports (generated output)
+cheat_check/*.html
+cheat_check/*.md
+cheat_report.txt
+**/cheat_report.txt
+
+# All PNG outputs (charts, screenshots, cheat check images)
+*.png
+
+# Logs
+*.log
+auto_update.log
+
+# Browser automation
+geckodriver.log
+chromedriver.log
+
+
+# Test files
+test_*.py
+debug_*.py
+*_test.py
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+*_backup.zip
+旧文件备份.zip
+
+# Config files with sensitive info (用户需要自己配置)
+config.py
+config.txt
+apikey.txt
+
+# Installer binaries (本机环境，不需要上传)
+miniconda.sh
+Miniconda*.sh
+Anaconda*.sh

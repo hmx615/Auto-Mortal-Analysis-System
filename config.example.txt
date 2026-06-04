@@ -1,0 +1,45 @@
+# ============================================================
+# 配置示例文件 - 复制为 config.py 并填入实际值
+# Configuration Example - Copy to config.py and fill in values
+# ⚠️  config.py 已在 .gitignore 中排除，不会上传到 GitHub
+# ============================================================
+
+# 玩家信息
+PLAYER_NAME = "YourName"       # 昵称，同时作为 data 子目录名
+PLAYER_ID = 12345678           # 牌谱屋 ID
+REAL_MAJSOUL_ID = "00000000"   # 雀魂友人 ID
+
+# 房间模式：16=王座, 12=玉, 9=金, 16.12=王座+玉
+MODE = 16.12
+
+# 2Captcha API Key（留空则使用手动验证码模式）
+TWOCAPTCHA_API_KEY = ""
+
+# 并行 worker 数量
+WORKER_COUNT = 3
+
+# 可视化目标玩家（留空则使用 PLAYER_NAME）
+# 可与爬虫/分析模块独立设置，用于可视化其他已分析过的玩家
+VIZ_TARGET = ""
+
+# 可视化 Rating 过滤范围（0 = 不过滤）
+VIZ_RATING_MIN = 0    # 低于此分数的局不参与统计，例如设为 80 过滤掉异常低分局
+VIZ_RATING_MAX = 100  # 高于此分数的局不参与统计，0 或 100 表示不设上限
+
+# ── 查挂模块参数 ─────────────────────────────────────────────
+# 要查的玩家（留空则使用上方 PLAYER_NAME；填多个用逗号分隔；填 "ALL" 分析所有玩家）
+CHEAT_CHECK_TARGET  = ""
+
+# 突变点两侧最少场数（建议 6-10）
+CHEAT_MIN_WINDOW    = 8
+
+# 一致率突变最小幅度（百分点），低于此视为正常波动
+CHEAT_DELTA_MIN     = 6.0
+
+# 全程开挂的均值阈值（全局均值超过此值且无突变点 → 疑似全程AI）
+CHEAT_HIGH_MEAN     = 82.0
+
+# ── 全程开挂三维度阈值（三项同时满足才判定）────────────────
+CHEAT_FULLTIME_MR       = 81.0   # match_rate 全局均值下限（%）
+CHEAT_FULLTIME_RATING   = 91.0   # rating 全局均值下限
+CHEAT_FULLTIME_HIGH_PCT = 70.0   # rating≥90 局数占比下限（%）

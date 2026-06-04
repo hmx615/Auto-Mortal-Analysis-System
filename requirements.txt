@@ -1,0 +1,21 @@
+# Mortal Analysis System - Python Dependencies
+
+# Core dependencies
+requests>=2.31.0
+pandas>=2.0.0
+
+# Analysis module (Selenium still needed for Mortal AI browser automation)
+selenium>=4.15.0
+2captcha-python>=1.2.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+
+# Visualization module
+plotly>=5.18.0
+
+# Terminal progress display
+rich>=13.0.0
+
+# Installation command (using Tsinghua mirror for faster download in China):
+# pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
