@@ -46,7 +46,7 @@ def get_latest_count():
         return 0
 
 def run_crawler():
-    """Run API crawler"""
+    """Run the headed browser crawler."""
     log("Starting crawler...")
 
     try:

@@ -13,7 +13,7 @@
 
 ## 🌟 功能特点
 
-- ✅ **全自动爬取**: 从牌谱屋API并发获取所有历史牌谱，速度和完整性大幅提升
+- ✅ **网页爬取**: 通过牌谱屋前端持续滚动获取所有历史牌谱
 - ✅ **AI智能分析**: 使用Mortal AI分析每一局，给出评分和一致率
 - ✅ **多线程分析**: 多个Worker并行分析，速度成倍提升 ⭐ New
 - ✅ **查挂检测**: 多维度统计分析 + Fisher合并置信度，识别异常高分玩家 ⭐ New
@@ -28,7 +28,8 @@
 ```
 Auto-Mortal-Analysis-System/
 ├── crawler/            # 牌谱爬取模块 (Web Crawler)
-│   ├── crawl_all.py    # 爬虫主程序（并发API请求）
+│   ├── crawl_all.py      # 兼容启动入口（仅调用网页爬虫）
+│   ├── crawl_frontend.py # Edge 前端滚动爬虫
 │   ├── run_crawl.bat   # 一键运行爬虫
 │   ├── README.md       # 爬虫说明文档
 │   └── 如何获取ID.md   # ID获取详细教程
@@ -80,10 +81,10 @@ Auto-Mortal-Analysis-System/
 ### 第一步: 配置玩家ID
 
 1. 获取你的两个ID（详见 `爬虫部分/如何获取ID.md`）:
-   - **PLAYER_ID**: 牌谱屋账号ID（用于API查询）
+   - **PLAYER_ID**: 牌谱屋账号ID（用于打开玩家网页）
    - **REAL_MAJSOUL_ID**: 雀魂友人ID（用于Mortal分析）⭐
 
-2. 编辑 `爬虫部分/crawl_all.py`，修改配置:
+2. 复制 `config.example.txt` 为 `config.py`，然后修改配置:
    ```python
    PLAYER_ID = 11351776          # 改为你的牌谱屋ID
    PLAYER_NAME = "Traaaaa"       # 改为你的昵称
@@ -104,7 +105,9 @@ cd crawler
 ```
 
 - 会自动爬取所有历史牌谱
-- 输出文件: `data/paipu_list.csv`
+- 输出文件: `data/<玩家名>/paipu_list.csv`
+- 会打开有界面的 Microsoft Edge 并持续滚动牌谱列表
+- 旧 `player_records` 直连 API 已停用，不再尝试请求 CAP 受保护接口
 - 首次运行建议使用有线网络或VPN（更稳定）
 
 ### 第三步: 配置2Captcha API Key（可选）
@@ -189,7 +192,7 @@ cd auto_update
 
 ## 📊 输出说明
 
-### 1. 牌谱列表 (`data/paipu_list.csv`)
+### 1. 牌谱列表 (`data/<玩家名>/paipu_list.csv`)
 
 | 字段 | 说明 |
 |------|------|
@@ -394,7 +397,7 @@ cd analyzer
 ### v1.3 (2026-06-04)
 - ✅ **新增多线程分析模式**: 多个Worker并行提交分析，分析速度成倍提升，支持Rich实时进度面板
 - ✅ **新增查挂检测模块**: 多维度统计分析（Match Rate突变、高分区间占比等）+ Fisher合并置信度，生成HTML/文本报告
-- ✅ **爬虫模块优化**: 改用并发API请求（8线程），爬取速度和完整性大幅提高
+- ✅ **爬虫模块优化**: 改用牌谱屋网页前端滚动抓取，适配 CAP 保护
 - ✅ **多用户数据支持**: 每个玩家数据独立存储在 `data/<玩家名>/` 下，同一套工具可分析多个账号
 
 ### v1.1 (2025-12-18)
@@ -406,7 +409,7 @@ cd analyzer
 - ⚠️ 明确 Python 版本要求：3.8 - 3.12（不支持 3.13+）
 
 ### v1.0 (2025-12-16)
-- ✅ 完整的爬虫功能（API + 网页）
+- ✅ 完整的网页爬虫功能
 - ✅ Mortal AI自动分析
 - ✅ 交互式可视化报告
 - ✅ 自动更新系统 ⭐
@@ -433,4 +436,3 @@ MIT License - 自由使用，欢迎分享
 您的支持是我持续维护和改进项目的动力！
 
  <img src="https://s2.loli.net/2025/12/16/aFn7lhTEBGHJyLb.png" alt="支付宝" />
-

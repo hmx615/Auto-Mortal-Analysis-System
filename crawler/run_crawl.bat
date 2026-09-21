@@ -2,15 +2,15 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 echo ============================================================
-echo Crawl All Paipu from API
+echo Crawl All Paipu from Amae-Koromo Web UI
 echo ============================================================
 echo.
-echo Getting ALL records from API (no limit)
+echo Opening Edge and scrolling through all records
 echo.
-echo Output: ../data/paipu_list.csv
+echo Output: ../data/PLAYER_NAME/paipu_list.csv
 echo.
 
-python crawl_all.py 2>&1
+python crawl_all.py %* 2>&1
 
 if %errorlevel% neq 0 (
     echo.
